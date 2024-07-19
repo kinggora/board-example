@@ -1,15 +1,13 @@
-import dao.BoardDBIO;
-import java.text.SimpleDateFormat;
+import dao.BoardService;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 import vo.Board;
 
 public class BoardExample {
 
-  private final BoardDBIO boardDBIO = new BoardDBIO();
+  private final BoardService boardService = new BoardService();
   private final Scanner sc = new Scanner(System.in);
 
   public static void main(String[] args) {
@@ -22,7 +20,7 @@ public class BoardExample {
     System.out.println("-----------------------------------------------------------");
     System.out.printf("%-4s %-10s %-15s %-30s\n", "no", "writer", "date", "title");
     System.out.println("-----------------------------------------------------------");
-    List<Board> boardList = boardDBIO.getBoardList();
+    List<Board> boardList = boardService.getBoardList();
     for(Board board: boardList) {
       System.out.printf("%-4d %-10s %-15s %-30s\n", board.getBno(), board.getBwriter(), formatDate(board.getBdate()), board.getBtitle());
     }
@@ -69,7 +67,7 @@ public class BoardExample {
             .bwriter(writer)
             .bdate(LocalDate.now())
             .build();
-        boardDBIO.insertBoard(board);
+        boardService.insertBoard(board);
       }
       case "2" -> {}
       default -> System.out.println("1,2 중에 입력해주세요.");
@@ -86,7 +84,7 @@ public class BoardExample {
       System.out.println("숫자를 입력해주세요.");
       return;
     }
-    boardDBIO.getBoardByBno(findBno)
+    boardService.getBoardByBno(findBno)
         .ifPresentOrElse(
             board -> {
               printBoardDetail(board);
@@ -118,7 +116,7 @@ public class BoardExample {
     switch (menu) {
       case "1" -> {
         board.updateBoard(title, content, writer);
-        boardDBIO.updateBoard(board);
+        boardService.updateBoard(board);
       }
       case "2" -> {}
       default -> System.out.println("1,2 중에 입력해주세요.");
@@ -126,7 +124,7 @@ public class BoardExample {
   }
 
   private void delete(Board board) {
-    boardDBIO.deleteBoard(board.getBno());
+    boardService.deleteBoard(board.getBno());
   }
 
   private void clear() {
@@ -137,7 +135,7 @@ public class BoardExample {
     String menu = sc.nextLine();
     switch (menu) {
       case "1" -> {
-        boardDBIO.deleteAllBoard();
+        boardService.deleteAllBoard();
       }
       case "2" -> {}
       default -> System.out.println("1,2 중에 입력해주세요.");

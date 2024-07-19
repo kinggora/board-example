@@ -1,18 +1,15 @@
 package dao;
 
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import vo.Board;
-import vo.Board.BoardBuilder;
 
-public class BoardDBIO extends ObjectIO implements BoardIO {
+public class BoardService extends ObjectIO implements BoardIO {
 
   @Override
   public void insertBoard(Board board) {
