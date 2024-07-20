@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 
@@ -79,7 +78,7 @@ public abstract class ObjectIO {
     try{
       open();
       PreparedStatement pstmt = conn.prepareStatement(query);
-      setParams(pstmt, params);
+      setStatementParams(pstmt, params);
       int rows = pstmt.executeUpdate();
       pstmt.close();
       return rows != 0;
@@ -94,7 +93,7 @@ public abstract class ObjectIO {
     try{
       open();
       PreparedStatement pstmt = conn.prepareStatement(query);
-      setParams(pstmt, params);
+      setStatementParams(pstmt, params);
       rs = pstmt.executeQuery();
     } catch (SQLException e) {
       throw new RuntimeException(e);
@@ -102,7 +101,7 @@ public abstract class ObjectIO {
     return rs;
   }
 
-  private void setParams(PreparedStatement pstmt, Map<Integer, Object> param) throws SQLException {
+  private void setStatementParams(PreparedStatement pstmt, Map<Integer, Object> param) throws SQLException {
     for(Map.Entry<Integer, Object> entry : param.entrySet()) {
       Object value = entry.getValue();
       if(value instanceof Integer intValue) {
