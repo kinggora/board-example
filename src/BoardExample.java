@@ -38,21 +38,17 @@ public class BoardExample {
     System.out.println("1.Create | 2.Read | 3.Clear | 4.Exit");
     System.out.print(Label.MENU_SELECT);
     String menu = sc.nextLine();
-    try{
-      switch (menu) {
-        case "1" -> create();
-        case "2" -> read();
-        case "3" -> clear();
-        case "4" -> {
-          System.out.println(Label.EXIT_MASSAGE);
-          return;
-        }
-        default -> {
-          System.out.println("1~4 중에 입력해주세요.");
-        }
+    switch (menu) {
+      case "1" -> create();
+      case "2" -> read();
+      case "3" -> clear();
+      case "4" -> {
+        System.out.println(Label.EXIT_MASSAGE);
+        return;
       }
-    } catch(BoardException e) {
-      System.out.println(e.getMessage());
+      default -> {
+        System.out.println("1~4 중에 입력해주세요.");
+      }
     }
     list();
   }
@@ -106,22 +102,26 @@ public class BoardExample {
     System.out.println(Label.READ);
     System.out.print(Label.BNO);
     String bno = sc.nextLine();
-    if(!BoardValidator.validateBno(bno)) {
-      throw new BoardException(ErrorMessage.INVALID_BNO);
-    }
-    int findBno = Integer.parseInt(bno);
-    Board board = boardServiceImpl.getBoardByBno(findBno)
-            .orElseThrow(() -> new BoardException(ErrorMessage.NOT_EXISTS_BOARD));
-    printBoardDetail(board);
-    System.out.print(Label.SUB_MENU);
-    System.out.println("1.Update | 2.Delete | 3.List");
-    System.out.print(Label.MENU_SELECT);
-    String subMenu = sc.nextLine();
-    switch (subMenu) {
-      case "1" -> update(board);
-      case "2" -> delete(board);
-      case "3" -> {}
-      default -> System.out.println("1~3 중에 입력해주세요.");
+    try{
+      if(!BoardValidator.validateBno(bno)) {
+        throw new BoardException(ErrorMessage.INVALID_BNO);
+      }
+      int findBno = Integer.parseInt(bno);
+      Board board = boardServiceImpl.getBoardByBno(findBno)
+              .orElseThrow(() -> new BoardException(ErrorMessage.NOT_EXISTS_BOARD));
+      printBoardDetail(board);
+      System.out.print(Label.SUB_MENU);
+      System.out.println("1.Update | 2.Delete | 3.List");
+      System.out.print(Label.MENU_SELECT);
+      String subMenu = sc.nextLine();
+      switch (subMenu) {
+        case "1" -> update(board);
+        case "2" -> delete(board);
+        case "3" -> {}
+        default -> System.out.println("1~3 중에 입력해주세요.");
+      }
+    } catch(BoardException e) {
+      System.out.println(e.getMessage());
     }
   }
 
