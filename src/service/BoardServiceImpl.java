@@ -1,4 +1,4 @@
-package dao;
+package service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -7,9 +7,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import vo.Board;
 
-public class BoardService extends ObjectIO implements BoardIO {
+import common.ObjectIO;
+import domain.Board;
+
+public class BoardServiceImpl extends ObjectIO implements BoardService {
 
   @Override
   public void insertBoard(Board board) {
@@ -19,7 +21,7 @@ public class BoardService extends ObjectIO implements BoardIO {
     paramMap.put(2, board.getBcontent());
     paramMap.put(3, board.getBwriter());
     paramMap.put(4, board.getBdate());
-    execute(query, paramMap);
+    super.execute(query, paramMap);
   }
 
   @Override
@@ -30,7 +32,7 @@ public class BoardService extends ObjectIO implements BoardIO {
     paramMap.put(2, board.getBcontent());
     paramMap.put(3, board.getBwriter());
     paramMap.put(4, board.getBno());
-    execute(query, paramMap);
+    super.execute(query, paramMap);
   }
 
   @Override
@@ -38,13 +40,13 @@ public class BoardService extends ObjectIO implements BoardIO {
     String query = "DELETE FROM board WHERE bno = ?";
     Map<Integer, Object> paramMap = new HashMap<>();
     paramMap.put(1, bno);
-    execute(query, paramMap);
+    super.execute(query, paramMap);
   }
 
   @Override
   public void deleteAllBoard() {
     String query = "DELETE FROM board";
-    execute(query);
+    super.execute(query);
   }
 
   @Override

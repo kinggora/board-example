@@ -1,10 +1,10 @@
-package dao;
+package service;
 
 import java.util.List;
 import java.util.Optional;
-import vo.Board;
+import domain.Board;
 
-public interface BoardIO {
+public interface BoardService {
 
   void insertBoard(Board board);
 

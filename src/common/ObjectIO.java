@@ -1,4 +1,4 @@
-package dao;
+package common;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -17,11 +17,11 @@ import java.util.Properties;
 
 public abstract class ObjectIO {
 
-  private Connection conn = null;
-  private static final String PATH = "C:\\study\\java\\board-example\\resource\\database.properties";
+  private static final String PATH = "C:\\Users\\HYUNA\\study2024\\board-example\\resource\\database.properties";
   private final String URL;
   private final String USERNAME;
   private final String PASSWORD;
+  private Connection conn = null;
 
   public ObjectIO() {
     try(Reader fileReader = new FileReader(PATH, StandardCharsets.UTF_8);) {
@@ -70,7 +70,8 @@ public abstract class ObjectIO {
       return rows != 0;
     } catch (SQLException e) {
       throw new RuntimeException(e);
-      //return false;
+    } finally {
+      close();;
     }
   }
 
@@ -113,6 +114,5 @@ public abstract class ObjectIO {
       }
     }
   }
-
 
 }

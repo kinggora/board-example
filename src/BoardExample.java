@@ -1,13 +1,18 @@
-import dao.BoardService;
+import exception.BoardException;
+import message.Label;
+import message.ErrorMessage;
+import service.BoardService;
+import service.BoardServiceImpl;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Scanner;
-import vo.Board;
+import domain.Board;
+import service.BoardValidator;
 
 public class BoardExample {
 
-  private final BoardService boardService = new BoardService();
+  private final BoardService boardServiceImpl = new BoardServiceImpl();
   private final Scanner sc = new Scanner(System.in);
 
   public static void main(String[] args) {
@@ -16,58 +21,81 @@ public class BoardExample {
   }
 
   private void list() {
-    System.out.println("[게시글 목록]");
-    System.out.println("-----------------------------------------------------------");
+    System.out.println(Label.LIST);
+    System.out.println(Label.HORIZONTAL_LINE);
     System.out.printf("%-4s %-10s %-15s %-30s\n", "no", "writer", "date", "title");
-    System.out.println("-----------------------------------------------------------");
-    List<Board> boardList = boardService.getBoardList();
+    System.out.println(Label.HORIZONTAL_LINE);
+    List<Board> boardList = boardServiceImpl.getBoardList();
     for(Board board: boardList) {
       System.out.printf("%-4d %-10s %-15s %-30s\n", board.getBno(), board.getBwriter(), formatDate(board.getBdate()), board.getBtitle());
     }
-    System.out.println("-----------------------------------------------------------");
+    System.out.println(Label.HORIZONTAL_LINE);
     mainMenu();
   }
 
   private void mainMenu() {
-    System.out.println("메인 메뉴: 1.Create | 2.Read | 3.Clear | 4.Exit");
-    System.out.print("메뉴 선택: ");
+    System.out.print(Label.MAIN_MENU);
+    System.out.println("1.Create | 2.Read | 3.Clear | 4.Exit");
+    System.out.print(Label.MENU_SELECT);
     String menu = sc.nextLine();
-    switch (menu) {
-      case "1" -> create();
-      case "2" -> read();
-      case "3" -> clear();
-      case "4" -> {
-        System.out.println("*** 프로그램 종료 ***");
-        return;
+    try{
+      switch (menu) {
+        case "1" -> create();
+        case "2" -> read();
+        case "3" -> clear();
+        case "4" -> {
+          System.out.println(Label.EXIT_MASSAGE);
+          return;
+        }
+        default -> {
+          System.out.println("1~4 중에 입력해주세요.");
+        }
       }
-      default -> {
-        System.out.println("1~4 중에 입력해주세요.");
-      }
+    } catch(BoardException e) {
+      System.out.println(e.getMessage());
     }
     list();
   }
 
   private void create() {
-    System.out.println("[새 게시물 입력]");
-    System.out.print("제목: ");
-    String title = sc.nextLine();
-    System.out.print("내용: ");
-    String content = sc.nextLine();
-    System.out.print("작성자: ");
-    String writer = sc.nextLine();
-    System.out.println("-----------------------------------------------------------");
-    System.out.println("보조 메뉴: 1.OK | 2.Cancel");
-    System.out.print("메뉴 선택: ");
+    System.out.println(Label.CREATE);
+    Board board;
+    while(true) {
+      try {
+        System.out.print(Label.TITLE);
+        String title = sc.nextLine();
+        if(!BoardValidator.validateTitle(title)) {
+          throw new BoardException(ErrorMessage.INVALID_TITLE);
+        }
+        System.out.print(Label.CONTENT);
+        String content = sc.nextLine();
+        if(!BoardValidator.validateContent(content)){
+          throw new BoardException(ErrorMessage.INVALID_CONTENT);
+        }
+        System.out.print(Label.WRITER);
+        String writer = sc.nextLine();
+        if(!BoardValidator.validateWriter(writer)) {
+          throw new BoardException(ErrorMessage.INVALID_WRITER);
+        }
+        board = Board.builder()
+                .btitle(title)
+                .bcontent(content)
+                .bwriter(writer)
+                .bdate(LocalDate.now())
+                .build();
+        break;
+      } catch (BoardException e) {
+        System.out.println(e.getMessage());
+      }
+    }
+    System.out.println(Label.HORIZONTAL_LINE);
+    System.out.print(Label.SUB_MENU);
+    System.out.println("1.OK | 2.Cancel");
+    System.out.print(Label.MENU_SELECT);
     String menu = sc.nextLine();
     switch (menu) {
       case "1" -> {
-        Board board = Board.builder()
-            .btitle(title)
-            .bcontent(content)
-            .bwriter(writer)
-            .bdate(LocalDate.now())
-            .build();
-        boardService.insertBoard(board);
+        boardServiceImpl.insertBoard(board);
       }
       case "2" -> {}
       default -> System.out.println("1,2 중에 입력해주세요.");
@@ -75,48 +103,60 @@ public class BoardExample {
   }
 
   private void read() {
-    System.out.println("[게시물 읽기]");
-    int findBno;
-    System.out.print("bno: ");
-    try{
-      findBno = Integer.parseInt(sc.nextLine());
-    } catch (NumberFormatException e) {
-      System.out.println("숫자를 입력해주세요.");
-      return;
+    System.out.println(Label.READ);
+    System.out.print(Label.BNO);
+    String bno = sc.nextLine();
+    if(!BoardValidator.validateBno(bno)) {
+      throw new BoardException(ErrorMessage.INVALID_BNO);
     }
-    boardService.getBoardByBno(findBno)
-        .ifPresentOrElse(
-            board -> {
-              printBoardDetail(board);
-              System.out.println("보조 메뉴: 1.Update | 2.Delete | 3.List");
-              System.out.print("메뉴 선택: ");
-              String subMenu = sc.nextLine();
-              switch (subMenu) {
-                case "1" -> update(board);
-                case "2" -> delete(board);
-                case "3" -> {}
-                default -> System.out.println("1~3 중에 입력해주세요.");
-              }
-            },
-            () -> System.out.println("게시물이 존재하지 않습니다.")
-        );
+    int findBno = Integer.parseInt(bno);
+    Board board = boardServiceImpl.getBoardByBno(findBno)
+            .orElseThrow(() -> new BoardException(ErrorMessage.NOT_EXISTS_BOARD));
+    printBoardDetail(board);
+    System.out.print(Label.SUB_MENU);
+    System.out.println("1.Update | 2.Delete | 3.List");
+    System.out.print(Label.MENU_SELECT);
+    String subMenu = sc.nextLine();
+    switch (subMenu) {
+      case "1" -> update(board);
+      case "2" -> delete(board);
+      case "3" -> {}
+      default -> System.out.println("1~3 중에 입력해주세요.");
+    }
   }
 
   private void update(Board board) {
-    System.out.println("[수정 내용 입력]");
-    System.out.print("제목: ");
-    String title = sc.nextLine();
-    System.out.print("내용: ");
-    String content = sc.nextLine();
-    System.out.print("작성자: ");
-    String writer = sc.nextLine();
-    System.out.println("보조 메뉴: 1.OK | 2.Cancel");
-    System.out.print("메뉴 선택: ");
+    System.out.println(Label.UPDATE);
+    while(true) {
+      try {
+        System.out.print(Label.TITLE);
+        String title = sc.nextLine();
+        if(!BoardValidator.validateTitle(title)) {
+          throw new BoardException(ErrorMessage.INVALID_TITLE);
+        }
+        System.out.print(Label.CONTENT);
+        String content = sc.nextLine();
+        if(!BoardValidator.validateContent(content)){
+          throw new BoardException(ErrorMessage.INVALID_CONTENT);
+        }
+        System.out.print(Label.WRITER);
+        String writer = sc.nextLine();
+        if(!BoardValidator.validateWriter(writer)) {
+          throw new BoardException(ErrorMessage.INVALID_WRITER);
+        }
+        board.updateBoard(title, content, writer);
+        break;
+      } catch (BoardException e) {
+        System.out.println(e.getMessage());
+      }
+    }
+    System.out.print(Label.SUB_MENU);
+    System.out.println("1.OK | 2.Cancel");
+    System.out.print(Label.MENU_SELECT);
     String menu = sc.nextLine();
     switch (menu) {
       case "1" -> {
-        board.updateBoard(title, content, writer);
-        boardService.updateBoard(board);
+        boardServiceImpl.updateBoard(board);
       }
       case "2" -> {}
       default -> System.out.println("1,2 중에 입력해주세요.");
@@ -124,18 +164,19 @@ public class BoardExample {
   }
 
   private void delete(Board board) {
-    boardService.deleteBoard(board.getBno());
+    boardServiceImpl.deleteBoard(board.getBno());
   }
 
   private void clear() {
-    System.out.println("[게시물 전체 삭제]");
-    System.out.println("-----------------------------------------------------------");
-    System.out.println("보조 메뉴: 1.Ok | 2. Cancel");
-    System.out.print("메뉴 선택: ");
+    System.out.println(Label.CLEAR);
+    System.out.println(Label.HORIZONTAL_LINE);
+    System.out.print(Label.SUB_MENU);
+    System.out.println("1.OK | 2.Cancel");
+    System.out.print(Label.MENU_SELECT);
     String menu = sc.nextLine();
     switch (menu) {
       case "1" -> {
-        boardService.deleteAllBoard();
+        boardServiceImpl.deleteAllBoard();
       }
       case "2" -> {}
       default -> System.out.println("1,2 중에 입력해주세요.");
@@ -143,18 +184,18 @@ public class BoardExample {
   }
 
   private void printBoardDetail(Board board) {
-    System.out.println("############");
-    System.out.print("번호: ");
+    System.out.println(Label.HORIZONTAL_SHARP);
+    System.out.print(Label.BNO);
     System.out.println(board.getBno());
-    System.out.print("제목: ");
+    System.out.print(Label.TITLE);
     System.out.println(board.getBtitle());
-    System.out.print("내용: ");
-    System.out.println(board.getBtitle());
-    System.out.print("작성자: ");
+    System.out.print(Label.WRITER);
     System.out.println(board.getBwriter());
-    System.out.print("날짜: ");
+    System.out.print(Label.CONTENT);
+    System.out.println(board.getBcontent());
+    System.out.print(Label.DATE);
     System.out.println(formatDate(board.getBdate()));
-    System.out.println("############");
+    System.out.println(Label.HORIZONTAL_SHARP);
   }
 
   private String formatDate(LocalDate date) {
